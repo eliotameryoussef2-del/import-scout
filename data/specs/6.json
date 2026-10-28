@@ -1,1 +1,1 @@
-{"type":"yoga_mat","key":{"numeric":["thickness_mm","dims_cm"],"materials":true},"specs":{"thickness_mm":6,"dims_cm":[183,61,0.6],"count":100000,"materials":["tpe"]},"manual":{},"model":"ym006"}
+{"type":"yoga_mat","key":{"numeric":["thickness_mm","dims_cm"],"materials":true},"specs":{"thickness_mm":6,"dims_cm":[183,61,0.6],"count":100000,"materials":["tpe","suede"]},"manual":{},"model":"ym006"}

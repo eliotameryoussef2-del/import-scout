@@ -15,12 +15,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Import Scout">
   <link rel="stylesheet" href="./vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="./v202610282139/styles.css">
+  <link rel="stylesheet" href="./v202610282235/styles.css">
 </head>
 <body>
   <header class="topbar">
     <a href="#/" class="brand"><span class="logo"><i data-ic="trend"></i></span> Import Scout <small>LB</small></a>
     <div class="topbar-right">
+      <button type="button" class="icon-btn" id="account-btn" aria-label="Account: sign in" hidden><i data-ic="user"></i></button>
       <a href="#/monitor" class="icon-btn" id="alerts-btn" aria-label="Alerts"><i data-ic="bell"></i><span id="alert-count" class="dot" hidden></span></a>
     </div>
   </header>
@@ -28,12 +29,10 @@
     <nav class="sidenav" id="nav" aria-label="Sections">
       <a href="#/" data-nav="feed"><i data-ic="home"></i><span>Feed</span></a>
       <a href="#/browse" data-nav="browse"><i data-ic="grid"></i><span>Browse</span></a>
-      <a href="#/studio" data-nav="studio"><i data-ic="spark"></i><span>Create posts</span></a>
       <a href="#/retailers" data-nav="retailers"><i data-ic="pin"></i><span>Stores</span></a>
-      <a href="#/simulate" data-nav="simulate"><i data-ic="calc"></i><span>Simulator</span></a>
+      <a href="#/check" data-nav="check"><i data-ic="search"></i><span>Price check</span></a>
       <a href="#/saved" data-nav="saved"><i data-ic="bookmark"></i><span>Saved</span></a>
       <a href="#/monitor" data-nav="monitor"><i data-ic="refresh"></i><span>Monitoring</span></a>
-      <a href="#/calendar" data-nav="calendar"><i data-ic="calendar"></i><span>Calendar</span></a>
       <a href="#/trends" data-nav="trends"><i data-ic="chart"></i><span>Trends</span></a>
       <a href="#/settings" data-nav="settings"><i data-ic="gear"></i><span>Settings</span></a>
     </nav>
@@ -42,19 +41,20 @@
   <nav class="bottomnav" aria-label="Main">
     <a href="#/" data-nav="feed"><i data-ic="home"></i><span>Feed</span></a>
     <a href="#/browse" data-nav="browse"><i data-ic="grid"></i><span>Browse</span></a>
-    <a href="#/studio" data-nav="studio" class="create" aria-label="Create posts"><b><i data-ic="plus"></i></b><span>Create</span></a>
+    <a href="#/saved" data-nav="saved"><i data-ic="bookmark"></i><span>Saved</span></a>
     <a href="#/retailers" data-nav="retailers"><i data-ic="pin"></i><span>Stores</span></a>
     <button id="more-btn" type="button"><i data-ic="menu"></i><span>More</span></button>
   </nav>
   <div id="more-sheet" class="sheet" hidden>
-    <a href="#/simulate"><i data-ic="calc"></i>Simulator</a><a href="#/saved"><i data-ic="bookmark"></i>Saved</a><a href="#/monitor"><i data-ic="refresh"></i>Monitoring</a>
-    <a href="#/calendar"><i data-ic="calendar"></i>Calendar</a><a href="#/trends"><i data-ic="chart"></i>Trends</a><a href="#/settings"><i data-ic="gear"></i>Settings</a>
-    <a href="#/add"><i data-ic="plus"></i>Add listing</a>
+    <a href="#/check"><i data-ic="search"></i>Price check</a><a href="#/replies"><i data-ic="chat"></i>Replies</a><a href="#/monitor"><i data-ic="refresh"></i>Monitoring</a>
+    <a href="#/trends"><i data-ic="chart"></i>Trends</a><a href="#/settings"><i data-ic="gear"></i>Settings</a>
+    
   </div>
   <div id="toast" class="toast" hidden></div>
   <script src="./vendor/leaflet/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script src="./static-config.js"></script>
-  <script type="module" src="./v202610282139/app.js"></script>
+  <script type="module" src="./v202610282235/app.js"></script>
   <script>
     // Safety net: if the app has not started after 12 s (bad connection, or old files left in the
     // phone's cache after an update), offer a reload that clears the cached copy.

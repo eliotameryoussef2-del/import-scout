@@ -1,1 +1,1 @@
-{"type":"scarf","key":{"numeric":["capacity_ml","battery_mah","power_w","thickness_mm","length_cm","count","lumens","dims_cm"]},"specs":{},"manual":{},"model":null}
+{"type":"scarf","key":{"numeric":["capacity_ml","battery_mah","power_w","thickness_mm","length_cm","count","lumens","dims_cm"]},"specs":{"materials":["fur"]},"manual":{},"model":null}

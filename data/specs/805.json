@@ -1,1 +1,1 @@
-{"type":"swimsuit","key":{"numeric":["capacity_ml","battery_mah","power_w","thickness_mm","length_cm","count","lumens","dims_cm"]},"specs":{"count":2},"manual":{},"model":null}
+{"type":"swimsuit","key":{"numeric":["capacity_ml","battery_mah","power_w","thickness_mm","length_cm","count","lumens","dims_cm"]},"specs":{"count":2,"materials":["crochet"]},"manual":{},"model":null}

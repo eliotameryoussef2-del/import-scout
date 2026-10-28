@@ -1,1 +1,1 @@
-{"type":"lunch_box","key":{"numeric":["capacity_ml"],"materials":true},"specs":{"capacity_ml":1100,"weight_g":300,"count":10000,"materials":["stainless steel","plastic"]},"manual":{},"model":"bj-917"}
+{"type":"lunch_box","key":{"numeric":["capacity_ml"],"materials":true},"specs":{"capacity_ml":1100,"weight_g":300,"count":10000,"materials":["stainless steel","plastic","straw"]},"manual":{},"model":"bj-917"}

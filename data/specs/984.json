@@ -1,1 +1,1 @@
-{"type":"socks","key":{"numeric":["capacity_ml","battery_mah","power_w","thickness_mm","length_cm","count","lumens","dims_cm"]},"specs":{},"manual":{},"model":null}
+{"type":"socks","key":{"numeric":["capacity_ml","battery_mah","power_w","thickness_mm","length_cm","count","lumens","dims_cm"]},"specs":{"materials":["fleece"]},"manual":{},"model":null}
