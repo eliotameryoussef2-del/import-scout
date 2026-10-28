@@ -14,7 +14,10 @@ function load() {
   catch { return { kinds: [], platforms: [], maxCost: null, maxMoq: null }; }
 }
 export const filters = load();
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(filters)); } catch { /* private mode */ } };
+const save = () => {
+  try { localStorage.setItem(KEY, JSON.stringify(filters)); } catch { /* private mode */ }
+  if (window.IMPORT_SCOUT_STATIC) import('./account.js').then(a => a.push()).catch(() => {});
+};
 
 const kindLabel = k => (k === 'other' ? 'Other' : state.meta.kinds?.[k] || k);
 /** Cash for the smallest order you can place, all costs in (goods, shipping, customs, VAT, launch ads). */

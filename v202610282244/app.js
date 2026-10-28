@@ -6,12 +6,11 @@ const routes = [
   [/^#?\/?(\?budget)?$/, 'feed', () => import('./views/feed.js')],
   [/^#\/browse(\?budget)?$/, 'browse', () => import('./views/discover.js')],
   [/^#\/p\/(\d+)$/, 'browse', () => import('./views/product.js')],
-  [/^#\/simulate$/, 'simulate', () => import('./views/simulate.js')],
+  [/^#\/check$/, 'check', () => import('./views/check.js')],
+  [/^#\/replies$/, 'replies', () => import('./views/replies.js')],
   [/^#\/retailers$/, 'retailers', () => import('./views/retailers.js')],
   [/^#\/monitor$/, 'monitor', () => import('./views/monitor.js')],
   [/^#\/saved$/, 'saved', () => import('./views/saved.js')],
-  [/^#\/studio(?:\/(\d+))?$/, 'studio', () => import('./views/studio.js')],
-  [/^#\/calendar$/, 'calendar', () => import('./views/calendar.js')],
   [/^#\/trends$/, 'trends', () => import('./views/trends.js')],
   [/^#\/settings$/, 'settings', () => import('./views/settings.js')],
   [/^#\/add$/, 'browse', () => import('./views/add.js')],
@@ -42,8 +41,8 @@ async function render() {
       await mod.default(view, ...m.slice(1));
       // Online copy: say what needs the computer, and how fresh the data is.
       const cfg = window.IMPORT_SCOUT_STATIC;
-      if (cfg && ['settings', 'monitor', 'studio', 'calendar', 'trends', 'simulate'].includes(nav)) {
-        view.insertAdjacentHTML('afterbegin', `<div class="notice">Online copy, updated ${ago(cfg.exportedAt)}. Prices refresh automatically; changing settings, refreshing a price or making posts works in the computer version.</div>`);
+      if (cfg && ['settings', 'monitor', 'trends'].includes(nav)) {
+        view.insertAdjacentHTML('afterbegin', `<div class="notice">Online copy, updated ${ago(cfg.exportedAt)}. Prices refresh automatically; changing settings or refreshing a single price works in the computer version.</div>`);
       }
     } catch (e) {
       view.innerHTML = `<div class="card"><h2>Something went wrong</h2><p class="muted">${e.message}</p></div>`;
@@ -62,6 +61,12 @@ document.getElementById('more-btn').addEventListener('click', () => {
 window.addEventListener('hashchange', render);
 // Static icons in the page shell.
 document.querySelectorAll('i[data-ic]').forEach(el => el.outerHTML = icon(el.dataset.ic).s);
+
+// Accounts (online copy): sign in like Darb; synced data redraws the current page.
+if (window.IMPORT_SCOUT_STATIC) {
+  document.getElementById('account-btn').hidden = false;
+  import('./account.js').then(a => a.initAccount(() => render())).catch(() => {});
+}
 
 (async () => {
   state.meta = await api('/meta');

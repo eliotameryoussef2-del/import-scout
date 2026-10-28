@@ -4,13 +4,17 @@
 const CFG = window.IMPORT_SCOUT_STATIC;
 const store = {
   get(k, d) { try { const v = localStorage.getItem('is:' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v) { try { localStorage.setItem('is:' + k, JSON.stringify(v)); } catch { /* private mode */ } },
+  set(k, v) {
+    try { localStorage.setItem('is:' + k, JSON.stringify(v)); } catch { /* private mode */ }
+    import('./account.js').then(a => a.push()).catch(() => {}); // sync to the signed-in account
+  },
 };
 const cache = new Map();
 const file = async rel => {
   if (!cache.has(rel)) cache.set(rel, fetch('data/' + rel, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error('Not in the online copy'); return r.json(); }));
   try { return await cache.get(rel); } catch (e) { cache.delete(rel); throw e; }
 };
+export const clearCache = () => cache.clear();
 export class ComputerOnly extends Error {
   constructor(what = 'This') { super(`${what} works in the computer version of Import Scout, not in the online copy.`); }
 }
@@ -47,6 +51,7 @@ export async function staticApi(path, opts = {}) {
     if ((m = p.match(/^\/comparable-history\/(\d+)$/))) return file(`history/${m[1]}.json`).catch(() => []);
     if ((m = p.match(/^\/suppliers\/(\d+)\/specs$/))) return file(`specs/${m[1]}.json`);
     if (p === '/portfolio') return file(`b${B}/portfolio.json`);
+    if ((m = p.match(/^\/check-data\/([a-z_]+)$/))) return file(`check/${m[1]}.json`).catch(() => ({ type: m[1], shops: [], suppliers: [] }));
     if (p === '/retailers') {
       let rows = await file('retailers.json');
       const cat = q.get('category'); const ch = q.get('channel'); const gov = (q.get('governorate') || '').toLowerCase(); const term = (q.get('q') || '').toLowerCase();
@@ -56,7 +61,13 @@ export async function staticApi(path, opts = {}) {
       if (term) rows = rows.filter(r => JSON.stringify([r.name, r.branches.map(b => [b.name, b.municipality, b.address])]).toLowerCase().includes(term));
       return rows;
     }
-    if ((m = p.match(/^\/comments\/(\d+)$/))) return store.get('comments', {})[m[1]] || [];
+    if ((m = p.match(/^\/comments\/(\d+)$/))) {
+      // Everyone's comments (shared), followed by notes kept only on this phone.
+      const local = (store.get('comments', {})[m[1]] || []).map(c => ({ ...c, private: true, mine: true }));
+      const shared = await (await import('./account.js')).sharedComments(m[1]).catch(() => null);
+      return [...(shared || []), ...local];
+    }
+    if (p === '/my-replies') return (await (await import('./account.js')).myReplies().catch(() => null)) ?? [];
     if (p === '/saved') {
       const s = savedMap(); const ids = Object.keys(s);
       if (!ids.length) return [];
@@ -83,12 +94,21 @@ export async function staticApi(path, opts = {}) {
   if (p === '/saved' && method === 'POST') { const s = savedMap(); s[opts.body.id] = { status: opts.body.status || 'investigating', note: opts.body.note ?? s[opts.body.id]?.note ?? null, created_at: new Date().toISOString() }; store.set('saved', s); return { ok: true }; }
   if ((m = p.match(/^\/saved\/(\d+)$/)) && method === 'DELETE') { const s = savedMap(); delete s[m[1]]; store.set('saved', s); return { ok: true }; }
   if ((m = p.match(/^\/comments\/(\d+)$/)) && method === 'POST') {
+    const body = String(opts.body.body || '').trim().slice(0, 2000);
+    if (!body) throw new Error('Write something first');
+    // Signed in (and shared comments set up): everyone sees it and can reply. Otherwise it stays on this phone.
+    const acc = await import('./account.js');
+    if (await acc.sharedReady()) return acc.postShared(m[1], opts.body.name, { body, author: opts.body.author, parent_id: opts.body.parent_id || null });
     const all = store.get('comments', {}); const list = all[m[1]] || [];
-    const c = { id: Date.now(), author: opts.body.author || null, body: String(opts.body.body || '').trim().slice(0, 2000), created_at: new Date().toISOString().replace('T', ' ').slice(0, 19) };
-    if (!c.body) throw new Error('Write something first');
+    const c = { id: Date.now(), parent_id: opts.body.parent_id || null, author: opts.body.author || null, body, private: true, mine: true, created_at: new Date().toISOString().replace('T', ' ').slice(0, 19) };
     all[m[1]] = [...list, c]; store.set('comments', all); return c;
   }
-  if ((m = p.match(/^\/comments\/(\d+)\/(\d+)$/)) && method === 'DELETE') { const all = store.get('comments', {}); all[m[1]] = (all[m[1]] || []).filter(c => String(c.id) !== m[2]); store.set('comments', all); return { ok: true }; }
+  if ((m = p.match(/^\/comments\/(\d+)\/(\d+)$/)) && method === 'DELETE') {
+    const all = store.get('comments', {}); const local = all[m[1]] || [];
+    if (local.some(c => String(c.id) === m[2])) { all[m[1]] = local.filter(c => String(c.id) !== m[2]); store.set('comments', all); return { ok: true }; }
+    await (await import('./account.js')).deleteShared(m[2]);
+    return { ok: true };
+  }
   if (p === '/alerts/read') return { ok: true };
   throw new ComputerOnly();
 }

@@ -1,5 +1,6 @@
 import { api, html, h, raw, money, money2, pct, statusBadge, labelBadge, riskBadge, freshBadge, ago, dateStr, toast, lineChart, PALETTE, formData, icon, evidenceBadge } from '../lib.js';
 import { state } from '../app.js';
+import { renderThread } from '../comments.js';
 
 const SC = ['conservative', 'base', 'optimistic'];
 
@@ -164,33 +165,9 @@ async function renderStores(view, comps, market) {
 // "Lteif (Lteif Home Appliances / Boèm Home)" → "Lteif" for the map labels.
 const shortName = name => name.replace(/\s*\(.*\)\s*$/, '');
 
-// Comments on this product, newest last. The name you type is remembered on this device.
-async function renderComments(view, id) {
-  const list = view.querySelector('#comment-list');
-  const form = view.querySelector('#comment-form');
-  const remembered = (() => { try { return localStorage.getItem('comment:author') || ''; } catch { return ''; } })();
-  form.author.value = remembered;
-  const draw = rows => {
-    list.innerHTML = rows.length ? html`<ul class="comments">${rows.map(c => h`<li><div class="row between"><b>${c.author || 'Anonymous'}</b><span class="row"><small class="muted" title="${dateStr(c.created_at.replace(' ', 'T') + 'Z')}">${ago(c.created_at.replace(' ', 'T') + 'Z')}</small><button type="button" class="btn small" data-del="${c.id}" aria-label="Delete comment">✕</button></span></div><p>${c.body}</p></li>`)}</ul>`
-      : '<p class="muted">No comments yet. Be the first.</p>';
-    list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
-      if (!confirm('Delete this comment?')) return;
-      await api(`/comments/${id}/${b.dataset.del}`, { method: 'DELETE' });
-      draw(await api(`/comments/${id}`));
-    }));
-  };
-  draw(await api(`/comments/${id}`));
-  form.addEventListener('submit', async e => {
-    e.preventDefault();
-    const body = form.body.value.trim();
-    if (!body) return;
-    const author = form.author.value.trim();
-    try { localStorage.setItem('comment:author', author); } catch { /* private mode */ }
-    form.querySelector('button').disabled = true;
-    try { await api(`/comments/${id}`, { body: { body, author } }); form.body.value = ''; draw(await api(`/comments/${id}`)); toast('Comment posted'); }
-    catch (err) { toast(err.message); }
-    finally { form.querySelector('button').disabled = false; }
-  });
+// Comments with replies (shared online when signed in; see comments.js).
+async function renderComments(view, id, name) {
+  await renderThread(view.querySelector('#comment-thread'), id, name);
 }
 
 // Why this many units: the order size with the best expected profit that fits the budget,
@@ -268,7 +245,7 @@ export default async function product(view, id) {
       ${a.reason ? h`<p class="explain"><b>${a.reason}</b></p>` : ''}
       ${a.explanation ? h`<p class="explain">${a.explanation}</p>` : ''}
       ${a.warnings?.length ? h`<details><summary>⚠ ${a.warnings.length} thing${a.warnings.length === 1 ? '' : 's'} to check</summary><ul class="warnings">${a.warnings.map(w => h`<li>${w}</li>`)}</ul></details>` : ''}
-      <div class="row" style="margin-top:10px"><button class="btn" id="save">${a.saved ? '★ Saved' : '☆ Save to shortlist'}</button><a class="btn" href="#/studio/${id}">✎ Create marketing</a></div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="save">${a.saved ? '★ Saved' : '☆ Save to shortlist'}</button><a class="btn" href="#comments" data-jump-comments>💬 Comments</a></div>
       ${a.status === 'unaffordable' ? h`<div class="notice warn" style="margin-top:10px"><b>Over your budget.</b> ${a.reason}
         ${a.alternatives?.length ? h`<br>Lower-minimum alternatives for the same product: ${a.alternatives.map(x => h`<a href="#/p/${x.id}">${x.short_name || x.title.slice(0, 40)} (${x.platform}, MOQ ${x.moq}, min. ${money(x.min_cash)})</a> `)}` : h`<br>No verified lower-MOQ listing of this product type yet — <a href="#/add">add one</a>.`}
         ${a.sharedImport ? h`<br><b>Shared import:</b> ${a.sharedImport.note}` : ''}</div>` : ''}
@@ -280,12 +257,7 @@ export default async function product(view, id) {
       <div id="store-list"></div>
     </section>
 
-    <section class="card" id="comments"><h2>Comments</h2><div id="comment-list"><div class="loading" style="padding:12px"></div></div>
-      <form id="comment-form" class="comment-form">
-        <input name="author" placeholder="Your name (optional)" maxlength="60" autocomplete="name">
-        <textarea name="body" placeholder="Write a comment, a question, or what the supplier told you…" maxlength="2000" required></textarea>
-        <button class="btn primary">Post comment</button>
-      </form>
+    <section class="card" id="comments"><h2>Comments</h2><div id="comment-thread"></div>
     </section>
 
     <h2 class="section-title">All the details</h2>
@@ -356,9 +328,10 @@ export default async function product(view, id) {
     </details>`;
 
   renderStores(view, a.comparables || [], a.pricing?.market).catch(e => console.error(e));
+  view.querySelector('[data-jump-comments]')?.addEventListener('click', e => { e.preventDefault(); view.querySelector('#comments').scrollIntoView({ behavior: 'smooth' }); });
   view.querySelector('[data-back]').addEventListener('click', e => { if (history.length > 1) { e.preventDefault(); history.back(); } });
   renderSpecEditor(view, id).catch(e => console.error(e));
-  renderComments(view, id).catch(e => console.error(e));
+  renderComments(view, id, sp.short_name || sp.title).catch(e => console.error(e));
   view.querySelector('#own-price').addEventListener('submit', async e => {
     e.preventDefault();
     const v = Math.round(Number(e.target.sell_price.value));

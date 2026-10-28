@@ -1,14 +1,11 @@
 // "For you": one opportunity per screen, swipe up for the next. Tap = details, double-tap = save.
-import { api, html, h, money, statusBadge, riskBadge, toast, icon, evidenceBadge } from '../lib.js';
+import { api, html, h, money, statusBadge, riskBadge, toast, icon, evidenceBadge, budgetLabel } from '../lib.js';
 import { state } from '../app.js';
 import { applyFilters, filterButton, bindFilters, openFilterPanel } from '../filters.js';
+import { openCommentsSheet } from '../comments.js';
 
-const TABS = [
-  ['foryou', 'Profitable', o => ['recommended', 'filtered', 'unaffordable'].includes(o.status)],
-  ['fits', 'In my budget', o => o.status === 'recommended'],
-  ['all', 'All', () => true],
-];
-let tab = 'foryou';
+// One feed: profitable products that fit the budget chosen in Filters ("Any amount" shows them all).
+const fitsBudget = o => ['recommended', 'filtered'].includes(o.status);
 
 const store = {
   get: k => { try { return sessionStorage.getItem(k); } catch { return null; } },
@@ -45,39 +42,53 @@ function slide(o, i) {
       ${o.score != null ? h`<div class="score-disc" style="--s:${o.score}" title="Opportunity score out of 100"><b>${Math.round(o.score)}</b></div>` : ''}
       <button class="${o.saved ? 'saved' : ''}" data-save aria-label="${o.saved ? 'Remove from saved' : 'Save'}"><span class="disc">${icon('heart')}</span><span>${o.saved ? 'Saved' : 'Save'}</span></button>
       <a href="#/p/${o.id}" aria-label="Details"><span class="disc">${icon('info')}</span><span>Details</span></a>
-      <a href="#/studio/${o.id}" aria-label="Create posts"><span class="disc">${icon('spark')}</span><span>Posts</span></a>
+      <button data-comments aria-label="Comments"><span class="disc">${icon('chat')}</span><span>Comments</span></button>
       <button data-share aria-label="Share"><span class="disc">${icon('share')}</span><span>Share</span></button>
     </div>
   </section>`;
 }
 
 function endSlide(count) {
-  const fits = tab === 'fits';
   return h`<section class="slide end" data-i="end">
     <div class="big-ic">${icon(count ? 'spark' : 'wallet')}</div>
-    <h2>${count ? "You're all caught up" : fits ? `Nothing fits ${money(state.settings.budget)} yet` : 'Nothing here yet'}</h2>
+    <h2>${count ? "You're all caught up" : `Nothing fits ${budgetLabel(state.settings.budget)} yet`}</h2>
     <p>${count ? 'New supplier listings and Lebanese prices are checked automatically. Come back later, or try another budget.'
-      : fits ? 'Every product compared against an identical one in Lebanon needs more cash or does not make a profit at this budget.' : 'Opportunities appear once supplier listings are added.'}</p>
+      : 'With this budget and these filters, nothing that makes a profit fits yet. Try a bigger budget (or Any amount) or fewer filters.'}</p>
     <div class="row" style="justify-content:center"><button class="btn primary" data-filters>${icon('filter')} Change budget or filters</button><a class="btn" href="#/browse">${icon('grid')} Browse list</a></div>
   </section>`;
+}
+
+// Refresh: fetch the latest products and prices. Online, also pick up a newly published version.
+async function refreshApp(draw) {
+  toast('Refreshing…');
+  if (window.IMPORT_SCOUT_STATIC) {
+    try {
+      const page = await fetch(location.pathname, { cache: 'no-store' }).then(r => r.text());
+      const live = page.match(/v\d{12}\/app\.js/)?.[0];
+      const mine = [...document.scripts].map(x => x.src).find(x => /app\.js/.test(x)) || '';
+      if (live && !mine.includes(live)) { location.reload(); return; } // a newer version was published
+    } catch { /* offline: keep what we have */ }
+    (await import('../static-api.js')).clearCache();
+  }
+  await draw();
+  toast('Up to date');
 }
 
 export default async function feed(view) {
   const draw = async () => {
     const everything = await api('/opportunities');
     const all = applyFilters(everything);
-    const filter = TABS.find(t => t[0] === tab)[2];
-    const rows = all.filter(filter);
+    const rows = all.filter(fitsBudget);
     view.innerHTML = html`
-      <div class="feed-tabs" role="tablist">${TABS.map(([k, l, f]) => h`<button role="tab" class="${k === tab ? 'on' : ''}" data-tab="${k}">${l}<i>${all.filter(f).length}</i></button>`)}${filterButton('on-feed')}</div>
+      <div class="feed-tabs"><button type="button" class="refresh-icon" data-refresh aria-label="Refresh">${icon('refresh')}</button>${filterButton('on-feed')}</div>
       <div class="feed" id="feed" tabindex="0">${rows.map(slide)}${endSlide(rows.length)}</div>`;
     const feedEl = view.querySelector('#feed');
 
-    view.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { tab = b.dataset.tab; draw(); }));
     bindFilters(view, () => api('/opportunities'), draw);
+    view.querySelector('[data-refresh]').addEventListener('click', () => refreshApp(draw));
 
     // Resume where the user left off (e.g. after opening a product's details).
-    const key = `feed:${tab}`;
+    const key = 'feed:main';
     const last = store.get(key);
     const at = last && feedEl.querySelector(`.slide[data-id="${last}"]`);
     if (at) feedEl.scrollTop = at.offsetTop;
@@ -102,6 +113,10 @@ export default async function feed(view) {
 
     feedEl.querySelectorAll('.slide[data-id]').forEach(s => {
       s.querySelector('[data-save]').addEventListener('click', () => toggleSave(s, false));
+      s.querySelector('[data-comments]').addEventListener('click', () => {
+        const o = rows.find(r => r.id === Number(s.dataset.id));
+        openCommentsSheet(o.id, o.name);
+      });
       s.querySelector('[data-share]').addEventListener('click', async () => {
         const o = rows.find(r => r.id === Number(s.dataset.id));
         const url = `${location.href.split('#')[0]}#/p/${o.id}`;

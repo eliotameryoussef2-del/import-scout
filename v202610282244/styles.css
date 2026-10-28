@@ -391,3 +391,24 @@ body.fpanel-open { overflow: hidden; }
 .fcustom label { flex: 1; }
 .ffoot { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); }
 .fsee { width: 100%; padding: 14px; font-size: 15px; }
+
+/* Feed refresh button (top left, like Darb) and the comments panel */
+.refresh-icon { position: absolute; left: 12px; top: 0; width: 36px; height: 32px; display: grid; place-items: center; border: 0; background: none; color: #fff; pointer-events: auto; cursor: pointer; filter: drop-shadow(0 1px 6px rgba(0,0,0,.6)); }
+.refresh-icon .ic { width: 20px; height: 20px; }
+.comments-sheet { max-height: 80dvh; overflow-y: auto; }
+.comments-sheet .clist { margin-bottom: 10px; }
+
+/* Account button + sign-in sheet */
+#account-btn { border: 0; cursor: pointer; }
+#account-btn.on { color: var(--brand); box-shadow: inset 0 0 0 2px var(--brand); }
+.codebox { letter-spacing: .4em; font-size: 1.4rem; text-align: center; }
+
+/* Comment threads */
+.comments.replies { margin: 8px 0 0 18px; border-left: 2px solid var(--line-2); padding-left: 10px; }
+.comments li.private { border-style: dashed; }
+.cactions { gap: 14px; margin-top: 4px; }
+.linkbtn { border: 0; background: none; padding: 0; color: var(--brand); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.replying { margin: 0; font-size: 13px; color: var(--muted); }
+/* Feed top row: refresh on the left, filters on the right (beats the generic .feed-tabs button rule). */
+.feed-tabs .refresh-icon { position: absolute; left: 12px; top: 0; padding: 0; text-shadow: none; }
+.feed-tabs { min-height: 36px; }
