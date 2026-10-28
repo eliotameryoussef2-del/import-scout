@@ -186,6 +186,22 @@ async function renderComments(view, id) {
   });
 }
 
+// Why this many units: the order size with the best expected profit that fits the budget,
+// between the supplier's minimum and what the shop could sell.
+function unitsBox(a, an) {
+  const d = a.demand; const b = an.scenarios.base; const months = a.assumptions?.demand?.horizon_months || 3;
+  if (!d) return '';
+  return h`<details class="cost-box" open><summary><b>Why ${an.qty} units?</b></summary>
+    <ul class="reasons" style="margin-top:8px">
+      <li>The supplier's minimum order is <b>${an.minQty}</b>.</li>
+      <li>At ${money(b.price)} each, you could sell about <b>${d.units.base}</b> in ${months} months (between ${d.units.conservative} and ${d.units.optimistic}). This is an estimate: Lebanon has no public sales figures, so it is based on the price and how many shops stock it.</li>
+      <li>The app tried every order size from ${an.minQty} up and kept the one with the <b>highest expected profit</b> that fits your ${money(a.budget)} budget. More units mostly sit unsold; fewer units earn less.</li>
+      <li>With ${an.qty} units: about ${b.unitsSold} sell at full price, ${b.clearedUnits} are sold off cheaper (${money(b.markdownPrice)}), ${b.unsoldUnits} may stay unsold${b.defectiveUnits ? `, ${b.defectiveUnits} may be defective` : ''}.</li>
+    </ul>
+    <small class="muted">Start smaller if you are unsure: test with the minimum order, then reorder what sells.</small>
+  </details>`;
+}
+
 // What the delivered cost contains, per unit, and which inputs are still estimates to confirm.
 function costBox(an, sp, as) {
   const per = x => money(x / an.qty, 2);
@@ -194,7 +210,7 @@ function costBox(an, sp, as) {
   if (sp.shipping?.weight_estimated) todo.push(`Weight ${sp.shipping.weight_kg} kg per unit is a typical figure for this product, not the supplier's: ask them for the carton weight and size.`);
   if (as?.freight) todo.push(`Shipping rate ${money(as.freight.rate_per_kg, 2)}/kg (${as.freight.label}) is a typical Lebanese forwarder price: get a written quote before ordering.`);
   todo.push('Supplier price is the listed price: logo, colour or packaging changes can raise it. Confirm it in writing.');
-  return h`<details class="cost-box"><summary><b>What's in the ${money(an.landedCostPerUnit, 2)}?</b> Everything to get one unit to you in Lebanon</summary>
+  return h`<details class="cost-box" open><summary><b>What's in the ${money(an.landedCostPerUnit, 2)}?</b> Everything to get one unit to you in Lebanon</summary>
     <table><tbody>${lines.map(l => h`<tr><td>${l.label}<br><small>${l.basis}</small></td><td class="num">${l.amount > 0 ? per(l.amount) : 'included'}</td></tr>`)}
     <tr class="total"><td>Delivered cost per unit</td><td class="num">${money(an.landedCostPerUnit, 2)}</td></tr></tbody></table>
     <p class="muted" style="margin:8px 0 4px"><b>Still estimates, confirm before paying:</b></p><ul class="reasons">${todo.map(t => h`<li>${t}</li>`)}</ul>
@@ -226,6 +242,7 @@ export default async function product(view, id) {
         ${sameBox(a.pricing?.market)}
       </div>
       ${costBox(an, sp, a.assumptions)}
+      ${unitsBox(a, an)}
       <div class="kpis">
         <div class="kpi"><b>${an.qty}</b><span>units to order (min. ${a.minimum?.minQty ?? sp.moq})</span></div>
         <div class="kpi"><b>${money(an.cashRequired)}</b><span>total cash needed</span></div>

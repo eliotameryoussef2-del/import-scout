@@ -1,0 +1,1 @@
+{"type":"power_bank","key":{"numeric":["battery_mah","power_w"],"features":true},"specs":{"battery_mah":10000,"power_w":20,"features":["power bank output","magnetic"],"count":2,"magnetic":true},"manual":{},"model":null}

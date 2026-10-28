@@ -1,8 +1,7 @@
 import { api, html, h, raw, money, pct, statusBadge, labelBadge, riskBadge, ago, toast, icon } from '../lib.js';
-import { state, refreshChrome } from '../app.js';
-import { applyFilters, filterButton, filters, activeCount, filterBar, bindFilterBar } from '../filters.js';
+import { state } from '../app.js';
+import { applyFilters, filterButton, filters, activeCount, bindFilters, openFilterPanel } from '../filters.js';
 
-const BUDGETS = [100, 250, 500, 1000, 2500, 5000];
 const TABS = [['recommended', 'Recommended'], ['unaffordable', 'Over budget'], ['filtered', 'Filtered by your settings'], ['insufficient_data', 'Not sold in Lebanon'], ['', 'All'], ['leads', 'Sourcing leads']];
 
 function leadsView(leads) {
@@ -16,7 +15,6 @@ function leadsView(leads) {
     </tbody></table></div>`;
 }
 let tab = 'recommended';
-let cat = '';
 
 // Summary card: where to buy, the three prices that matter, and the order. Everything else is one tap away.
 export function oppCard(o) {
@@ -62,41 +60,17 @@ export default async function discover(view) {
   const draw = async () => {
     const everything = await api('/opportunities');
     const all = applyFilters(everything);
-    const leads = tab === 'leads' ? (await api('/leads')).filter(l => !cat || l.category === cat) : null;
-    const rows = tab === 'leads' ? [] : all.filter(o => (!tab || tab.split(',').includes(o.status)) && (!cat || o.category === cat));
+    const leads = tab === 'leads' ? await api('/leads') : null;
+    const rows = tab === 'leads' ? [] : all.filter(o => !tab || tab.split(',').includes(o.status));
     const count = k => (k === 'leads' ? '…' : all.filter(o => !k || k.split(',').includes(o.status)).length);
     view.innerHTML = html`
-      ${filterBar('on-page')}
       <div class="page-head"><div><span class="eyebrow">Browse</span><h1>Opportunities</h1><p class="muted">Every import compared with the identical product in Lebanese stores, at a <b>${money(state.settings.budget)}</b> budget with shipping, customs, VAT and selling costs included.</p></div>
-        <div class="row"><a class="btn" href="#/">${icon('home')} Swipe view</a><a class="btn" href="#/add">${icon('plus')} Add listing</a></div></div>
-      <form class="card budget-box" id="budget-form">
-        <label for="budget-input"><b>How much can you invest?</b></label>
-        <div class="budget-row"><span class="cur">$</span><input id="budget-input" type="number" inputmode="numeric" min="20" step="1" value="${state.settings.budget}" aria-label="Your budget in US dollars"><button class="btn primary">Show what fits</button></div>
-        <div class="chips">${BUDGETS.map(b => h`<button type="button" class="chip ${b === state.settings.budget ? 'on' : ''}" data-budget="${b}">${money(b)}</button>`)}</div>
-        <small class="muted">Your total cash for one import, all costs included (goods, shipping, customs, VAT, launch ads). Anything that needs more is shown under "Over budget", never hidden.</small>
-        <div class="row"><label style="min-width:200px">Category <select id="cat"><option value="">All categories</option>${Object.entries(state.meta.categories).map(([k, v]) => h`<option value="${k}" ${k === cat ? 'selected' : ''}>${v}</option>`)}</select></label>
-          <small style="display:block;margin-top:6px">Risk limit: ${state.settings.max_risk} · min profit ${money(state.settings.min_net_profit)} · min margin ${pct(state.settings.min_margin)} · freight: ${state.meta.freightOptions[state.settings.freight_mode]?.label || 'auto (cheapest per order)'} — <a href="#/settings">change</a></small></div>
-      </form>
-      <div class="filter-summary">${filterButton()}${activeCount() ? h`<small class="muted">Showing ${all.length} of ${everything.length}: ${[filters.kinds.map(k => k === 'other' ? 'Other' : state.meta.kinds[k]).join(', '), filters.platforms.join(', '), filters.maxCost != null ? `cost up to ${money(filters.maxCost)}` : '', filters.maxMoq != null ? `min. qty up to ${filters.maxMoq}` : ''].filter(Boolean).join(' · ')}</small>` : h`<small class="muted">Filter by kind of object, supplier site, total cost or minimum quantity</small>`}</div>
+        <div class="row">${filterButton('labelled')}<a class="btn" href="#/">${icon('home')} Swipe view</a><a class="btn" href="#/add">${icon('plus')} Add listing</a></div></div>
+      ${activeCount() ? h`<p class="filter-summary"><small class="muted">Showing ${all.length} of ${everything.length}: ${[filters.kinds.map(k => k === 'other' ? 'Other' : state.meta.kinds[k]).join(', '), filters.platforms.join(', '), filters.maxCost != null ? `cost up to ${money(filters.maxCost)}` : '', filters.maxMoq != null ? `min. qty up to ${filters.maxMoq}` : ''].filter(Boolean).join(' · ')}</small></p>` : ''}
       <div class="tabs">${TABS.map(([k, l]) => h`<button class="${k === tab ? 'on' : ''}" data-tab="${k}">${l} (${count(k)})</button>`)}</div>
       ${leads ? leadsView(leads) : rows.length ? h`<div class="grid cards">${rows.map(oppCard)}</div>` : h`<div class="empty">Nothing here for this budget and these filters.${tab === 'recommended' ? raw(' Try a larger budget, check "Over budget", or <a href="#/add">add a supplier listing</a>.') : ''}</div>`}`;
     view.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { tab = b.dataset.tab; draw(); }));
-    bindFilterBar(view, everything, draw);
-    view.querySelector('#cat').addEventListener('change', e => { cat = e.target.value; draw(); });
-    const setBudget = async budget => {
-      view.querySelectorAll('.chip').forEach(c => (c.disabled = true));
-      toast('Recalculating every opportunity…');
-      await api('/settings', { method: 'PUT', body: { budget } });
-      await refreshChrome(); draw();
-    };
-    view.querySelectorAll('[data-budget]').forEach(b => b.addEventListener('click', () => setBudget(Number(b.dataset.budget))));
-    view.querySelector('#budget-form').addEventListener('submit', e => {
-      e.preventDefault();
-      const v = Math.round(Number(view.querySelector('#budget-input').value));
-      if (!(v >= 20)) return toast('Enter a budget of at least $20');
-      setBudget(v);
-    });
-    if (location.hash.includes('budget')) view.querySelector('#budget-input').focus();
+    bindFilters(view, () => api('/opportunities'), draw);
     bindSave(view, draw);
     // Tapping anywhere on a card (except its links/buttons) opens the full details.
     view.querySelectorAll('[data-open]').forEach(c => c.addEventListener('click', e => {
@@ -105,4 +79,6 @@ export default async function discover(view) {
     }));
   };
   await draw();
+  // Old #/browse?budget links open the budget filter.
+  if (location.hash.includes('budget')) { history.replaceState(null, '', '#/browse'); openFilterPanel(() => api('/opportunities'), draw, 'budget'); }
 }

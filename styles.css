@@ -303,8 +303,6 @@ details.fold[open] > summary { margin-bottom: 12px; }
 .budget-row .cur { font-size: 1.8rem; font-weight: 800; color: var(--brand); }
 .budget-row input { flex: 1; min-width: 0; font-size: 1.8rem; font-weight: 800; padding: 8px 14px; border-width: 2px; letter-spacing: -.02em; }
 .budget-box small { display: block; }
-#budget-pill { text-decoration: none !important; }
-#budget-pill .ic { width: 15px; height: 15px; }
 .buy-from .ic { width: 17px; height: 17px; color: var(--brand); }
 .opp-card .cover:not(:has(img)) { background: radial-gradient(circle at 30% 20%, rgba(46,242,180,.25), transparent 60%), radial-gradient(circle at 80% 90%, rgba(255,61,127,.2), transparent 60%), var(--surface-2); }
 .hero:not(:has(img)) { min-height: 150px; background: radial-gradient(circle at 20% 0%, rgba(46,242,180,.2), transparent 60%); }
@@ -338,8 +336,6 @@ details.fold[open] > summary { margin-bottom: 12px; }
 .filter-bar.on-feed { position: fixed; top: calc(var(--top-h) + 40px + env(safe-area-inset-top)); left: 0; right: 0; z-index: 40; padding: 2px 16px; justify-content: safe center; }
 .filter-bar.on-feed .fpill { height: 30px; padding: 0 12px; font-size: 12.5px; background: rgba(0,0,0,.4); color: #fff; border-color: rgba(255,255,255,.22); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .filter-bar.on-feed .fpill.on { background: #fff; color: #000; }
-.slide .media { top: calc(var(--top-h) + 84px + env(safe-area-inset-top)); }
-@media (min-width: 900px) { .filter-bar.on-feed { left: 220px; } .slide .media { top: 96px; } }
 
 /* Product map: price + store labels on the pins */
 .price-pin { background: none; border: 0; }
@@ -364,3 +360,34 @@ details.fold[open] > summary { margin-bottom: 12px; }
 .comments li p { margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; }
 .comment-form { display: grid; gap: 8px; }
 .comment-form textarea { min-height: 70px; }
+/* Filters button + full-screen filter panel (like Darb) */
+.filter-icon { position: relative; display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--text); cursor: pointer; }
+.filter-icon .ic { width: 20px; height: 20px; }
+.filter-icon b { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: #fff; font: 700 10.5px/18px var(--font); }
+.filter-icon.labelled { width: auto; padding: 0 14px; grid-auto-flow: column; gap: 6px; font: inherit; font-weight: 700; font-size: 14px; }
+.filter-icon.labelled::after { content: 'Filters'; }
+.filter-icon.on-feed { position: absolute; right: 12px; top: 0; width: 36px; height: 32px; border: 0; background: none; color: #fff; pointer-events: auto; filter: drop-shadow(0 1px 6px rgba(0,0,0,.6)); }
+.feed-tabs { padding-right: 52px; padding-left: 52px; }
+.fpanel { position: fixed; inset: 0; z-index: 120; background: var(--bg); display: flex; flex-direction: column; animation: fade-in .15s ease; padding-top: env(safe-area-inset-top); }
+body.fpanel-open { overflow: hidden; }
+.fhead { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.fhead b { font-size: 1.2rem; font-weight: 800; }
+.fback { width: 40px; height: 40px; border: 0; background: none; color: var(--text); font-size: 26px; line-height: 1; cursor: pointer; }
+.flink { margin-left: auto; border: 0; background: none; color: var(--brand); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
+.fbody { flex: 1; overflow-y: auto; }
+.frow, .fopt { display: flex; align-items: center; gap: 12px; width: 100%; padding: 16px; border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.frow:active, .fopt:active { background: var(--surface-2); }
+.frow span { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.frow b { font-size: 15.5px; }
+.frow small { color: var(--muted); font-size: 12.5px; }
+.frow em { font-style: normal; color: var(--brand); font-weight: 700; font-size: 13.5px; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.frow .chev { font-style: normal; color: var(--muted); font-size: 22px; }
+.fopt span { flex: 1; font-size: 15.5px; }
+.fopt small { color: var(--muted); }
+.fopt i { font-style: normal; width: 20px; text-align: right; color: var(--brand); font-weight: 800; }
+.fopt.on span { color: var(--brand); font-weight: 700; }
+.fnote { margin: 0; padding: 12px 16px; color: var(--muted); font-size: 13px; border-bottom: 1px solid var(--line); }
+.fcustom { display: flex; gap: 8px; align-items: end; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.fcustom label { flex: 1; }
+.ffoot { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); }
+.fsee { width: 100%; padding: 14px; font-size: 15px; }

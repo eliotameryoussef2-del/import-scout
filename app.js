@@ -21,7 +21,6 @@ const routes = [
 export async function refreshChrome() {
   const o = await api('/overview');
   state.settings = o.settings;
-  document.getElementById('budget-pill').innerHTML = `${icon('wallet').s}<span>${money(o.settings.budget)}</span>`;
   const dot = document.getElementById('alert-count');
   dot.hidden = !o.counts.unread_alerts;
   dot.textContent = o.counts.unread_alerts;
@@ -37,7 +36,6 @@ async function render() {
     if (!m) continue;
     document.querySelectorAll('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === nav));
     document.body.classList.toggle('feed-mode', nav === 'feed');
-    document.getElementById('budget-pill').href = nav === 'browse' ? '#/browse?budget' : '#/?budget';
     view.innerHTML = '<div class="loading">Loading…</div>';
     try {
       const mod = await load();

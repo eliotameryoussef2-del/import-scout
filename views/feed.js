@@ -1,14 +1,13 @@
 // "For you": one opportunity per screen, swipe up for the next. Tap = details, double-tap = save.
 import { api, html, h, money, statusBadge, riskBadge, toast, icon } from '../lib.js';
-import { state, refreshChrome } from '../app.js';
-import { applyFilters, filterBar, bindFilterBar } from '../filters.js';
+import { state } from '../app.js';
+import { applyFilters, filterButton, bindFilters, openFilterPanel } from '../filters.js';
 
 const TABS = [
   ['foryou', 'Profitable', o => ['recommended', 'filtered', 'unaffordable'].includes(o.status)],
   ['fits', 'In my budget', o => o.status === 'recommended'],
   ['all', 'All', () => true],
 ];
-const BUDGETS = [100, 250, 500, 1000, 2500, 5000];
 let tab = 'foryou';
 
 const store = {
@@ -59,38 +58,8 @@ function endSlide(count) {
     <h2>${count ? "You're all caught up" : fits ? `Nothing fits ${money(state.settings.budget)} yet` : 'Nothing here yet'}</h2>
     <p>${count ? 'New supplier listings and Lebanese prices are checked automatically. Come back later, or try another budget.'
       : fits ? 'Every product compared against an identical one in Lebanon needs more cash or does not make a profit at this budget.' : 'Opportunities appear once supplier listings are added.'}</p>
-    <div class="row" style="justify-content:center"><button class="btn primary" data-budget-open>${icon('wallet')} Change budget</button><a class="btn" href="#/browse">${icon('grid')} Browse list</a></div>
+    <div class="row" style="justify-content:center"><button class="btn primary" data-filters>${icon('filter')} Change budget or filters</button><a class="btn" href="#/browse">${icon('grid')} Browse list</a></div>
   </section>`;
-}
-
-function budgetSheet(onDone) {
-  const wrap = document.createElement('div');
-  wrap.className = 'overlay';
-  wrap.innerHTML = html`<form class="panel budget-box" id="budget-sheet">
-    <div class="grab"></div>
-    <label for="bs-input"><b>How much can you invest?</b></label>
-    <div class="budget-row"><span class="cur">$</span><input id="bs-input" type="number" inputmode="numeric" min="20" step="1" value="${state.settings.budget}" aria-label="Your budget in US dollars"><button class="btn primary">Show</button></div>
-    <div class="chips">${BUDGETS.map(b => h`<button type="button" class="chip ${b === state.settings.budget ? 'on' : ''}" data-b="${b}">${money(b)}</button>`)}</div>
-    <small class="muted">Total cash for one import: goods, shipping, customs, VAT and launch ads.</small>
-  </form>`;
-  const close = () => { wrap.remove(); if (location.hash.includes('budget')) history.replaceState(null, '', '#/'); };
-  const set = async budget => {
-    wrap.querySelectorAll('button').forEach(b => (b.disabled = true));
-    toast('Recalculating every opportunity…');
-    await api('/settings', { method: 'PUT', body: { budget } });
-    await refreshChrome();
-    close(); onDone();
-  };
-  wrap.addEventListener('click', e => { if (e.target === wrap) close(); });
-  wrap.querySelectorAll('[data-b]').forEach(b => b.addEventListener('click', () => set(Number(b.dataset.b))));
-  wrap.querySelector('form').addEventListener('submit', e => {
-    e.preventDefault();
-    const v = Math.round(Number(wrap.querySelector('#bs-input').value));
-    if (!(v >= 20)) return toast('Enter a budget of at least $20');
-    set(v);
-  });
-  document.body.appendChild(wrap);
-  wrap.querySelector('#bs-input').focus();
 }
 
 export default async function feed(view) {
@@ -100,14 +69,12 @@ export default async function feed(view) {
     const filter = TABS.find(t => t[0] === tab)[2];
     const rows = all.filter(filter);
     view.innerHTML = html`
-      <div class="feed-tabs" role="tablist">${TABS.map(([k, l, f]) => h`<button role="tab" class="${k === tab ? 'on' : ''}" data-tab="${k}">${l}<i>${all.filter(f).length}</i></button>`)}</div>
-      ${filterBar('on-feed')}
+      <div class="feed-tabs" role="tablist">${TABS.map(([k, l, f]) => h`<button role="tab" class="${k === tab ? 'on' : ''}" data-tab="${k}">${l}<i>${all.filter(f).length}</i></button>`)}${filterButton('on-feed')}</div>
       <div class="feed" id="feed" tabindex="0">${rows.map(slide)}${endSlide(rows.length)}</div>`;
     const feedEl = view.querySelector('#feed');
 
     view.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => { tab = b.dataset.tab; draw(); }));
-    bindFilterBar(view, everything, draw);
-    view.querySelectorAll('[data-budget-open]').forEach(b => b.addEventListener('click', () => budgetSheet(draw)));
+    bindFilters(view, () => api('/opportunities'), draw);
 
     // Resume where the user left off (e.g. after opening a product's details).
     const key = `feed:${tab}`;
@@ -166,5 +133,6 @@ export default async function feed(view) {
     feedEl.focus({ preventScroll: true });
   };
   await draw();
-  if (location.hash.includes('budget')) budgetSheet(draw);
+  // Old #/?budget links open the budget filter.
+  if (location.hash.includes('budget')) { history.replaceState(null, '', '#/'); openFilterPanel(() => api('/opportunities'), draw, 'budget'); }
 }
