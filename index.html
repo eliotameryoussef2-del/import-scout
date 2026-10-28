@@ -15,7 +15,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Import Scout">
   <link rel="stylesheet" href="./vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./v202610281507/styles.css">
 </head>
 <body>
   <header class="topbar">
@@ -54,6 +54,21 @@
   <div id="toast" class="toast" hidden></div>
   <script src="./vendor/leaflet/leaflet.js"></script>
   <script src="./static-config.js"></script>
-  <script type="module" src="./app.js"></script>
+  <script type="module" src="./v202610281507/app.js"></script>
+  <script>
+    // Safety net: if the app has not started after 12 s (bad connection, or old files left in the
+    // phone's cache after an update), offer a reload that clears the cached copy.
+    setTimeout(function () {
+      var v = document.getElementById('view');
+      if (!v || !v.querySelector('.loading') || document.querySelector('.slide, .card, .page-head')) return;
+      v.innerHTML = '<div class="empty" style="margin:40px 16px">The app is taking too long to open.<br><br><button class="btn primary" id="hard-reload">Reload</button></div>';
+      document.getElementById('hard-reload').onclick = function () {
+        var jobs = [];
+        if (window.caches) jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }));
+        if (navigator.serviceWorker) jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); }));
+        Promise.all(jobs).then(function () { location.reload(); }, function () { location.reload(); });
+      };
+    }, 12000);
+  </script>
 </body>
 </html>
