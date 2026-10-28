@@ -120,3 +120,11 @@ const ICONS = {
   filter: '<path d="M4 5h16l-6 8v6l-4-2v-4z"/>',
 };
 export const icon = (name, cls = '') => raw(`<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`);
+
+/** Budgets of $1,000,000 or more mean "no limit" (the "Any amount" choice in Filters). */
+export const ANY_BUDGET = 1000000;
+export const budgetLabel = b => (b >= ANY_BUDGET ? 'Any amount' : money(b));
+
+/** How the Lebanese price was found: identical item, closest items (approximate) or similar items (estimate). */
+export const evidenceBadge = m => (m?.basis === 'approximate' ? h`<span class="badge b-warn" title="No identical item in Lebanon: compared with the closest items">≈ Approximate</span>`
+  : m?.basis === 'similar unbranded' ? h`<span class="badge b-warn" title="Priced from similar unbranded items">Estimate</span>` : '');

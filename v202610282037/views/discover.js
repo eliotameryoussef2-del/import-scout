@@ -1,8 +1,8 @@
-import { api, html, h, raw, money, pct, statusBadge, labelBadge, riskBadge, ago, toast, icon } from '../lib.js';
+import { api, html, h, raw, money, pct, statusBadge, labelBadge, riskBadge, ago, toast, icon, ANY_BUDGET, evidenceBadge } from '../lib.js';
 import { state } from '../app.js';
 import { applyFilters, filterButton, filters, activeCount, bindFilters, openFilterPanel } from '../filters.js';
 
-const TABS = [['recommended', 'Recommended'], ['unaffordable', 'Over budget'], ['filtered', 'Filtered by your settings'], ['insufficient_data', 'Not sold in Lebanon'], ['', 'All'], ['leads', 'Sourcing leads']];
+const TABS = [['recommended', 'Recommended'], ['unaffordable', 'Over budget'], ['filtered', 'Filtered by your settings'], ['', 'All'], ['leads', 'Sourcing leads']];
 
 function leadsView(leads) {
   if (!leads.length) return h`<div class="empty">Leads appear once retailer catalogues have been fetched.</div>`;
@@ -23,7 +23,7 @@ export function oppCard(o) {
     <div class="cover">
       ${o.image ? h`<img src="${o.image}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
       ${o.score != null ? h`<span class="score-tag" title="Opportunity score out of 100">${Math.round(o.score)}</span>` : ''}
-      <div class="over"><div class="row">${statusBadge(o.status)} ${o.risk ? riskBadge(o.risk) : ''}</div><h3>${o.name}</h3></div>
+      <div class="over"><div class="row">${statusBadge(o.status)} ${evidenceBadge(o.market)} ${o.risk ? riskBadge(o.risk) : ''}</div><h3>${o.name}</h3></div>
     </div>
     <div class="inner">
     <p class="buy-from">${icon('box')}<span>Buy on <b>${o.platform || 'supplier'}</b>${o.supplier && !o.supplier.includes(o.platform) ? h` · ${o.supplier}` : ''}</span>
@@ -31,7 +31,7 @@ export function oppCard(o) {
     <div class="price-trio">
       <div><span>Costs you</span><b>${o.landed ? money(o.landed, 2) : money(o.unitCost, 2)}</b><small>${o.landed ? `delivered, all-in · supplier ${money(o.unitCost, 2)}` : 'supplier price only'} · min. ${o.moq ?? '?'}</small></div>
       <div><span>You sell at</span><b>${o.sellPrice ? money(o.sellPrice) : '—'}</b><small>${o.ownPrice ? 'your price' : o.sellPrice ? 'suggested' : 'set your price'}</small></div>
-      <div><span>${m?.basis === 'similar unbranded' ? 'Similar items in Lebanon' : 'Same product in Lebanon'}</span>${m?.basis === 'similar unbranded' ? h`<b>≈ ${money(m.median)}</b><small>estimate from ${m.listings} unbranded items · ${m.stores} stores</small>` : m ? h`<b>from ${money(m.min, m.min % 1 ? 2 : 0)}</b><small>${m.stores} store${m.stores === 1 ? '' : 's'}${m.max > m.min ? ` · up to ${money(m.max)}` : ''}${m.basis.startsWith('same specs where') ? ' · specs partly confirmed' : ''}</small>` : h`<b class="muted">not sold</b><small>no store sells the exact same product</small>`}</div>
+      <div><span>${m?.basis === 'approximate' ? 'Closest items in Lebanon' : m?.basis === 'similar unbranded' ? 'Similar items in Lebanon' : 'Same product in Lebanon'}</span>${m?.basis === 'approximate' ? h`<b>≈ ${money(m.min, m.min % 1 ? 2 : 0)}</b><small>approximate · ${m.stores} store${m.stores === 1 ? '' : 's'}, not identical</small>` : m?.basis === 'similar unbranded' ? h`<b>≈ ${money(m.median)}</b><small>estimate from ${m.listings} unbranded items · ${m.stores} stores</small>` : m ? h`<b>from ${money(m.min, m.min % 1 ? 2 : 0)}</b><small>${m.stores} store${m.stores === 1 ? '' : 's'}${m.max > m.min ? ` · up to ${money(m.max)}` : ''}${m.basis.startsWith('same specs where') ? ' · specs partly confirmed' : ''}</small>` : h`<b class="muted">not sold</b><small>no store sells the exact same product</small>`}</div>
     </div>
     ${o.status === 'unprofitable' && o.reason ? h`<p class="explain neg">${o.reason}</p>` : ''}
     ${o.status === 'insufficient_data' ? h`<p class="explain">${o.ownPrice ? '' : 'Nobody in Lebanon sells this exact product, so there is no price to compare. Open it to set your own selling price and see the numbers.'}</p>` : h`
@@ -64,7 +64,7 @@ export default async function discover(view) {
     const rows = tab === 'leads' ? [] : all.filter(o => !tab || tab.split(',').includes(o.status));
     const count = k => (k === 'leads' ? '…' : all.filter(o => !k || k.split(',').includes(o.status)).length);
     view.innerHTML = html`
-      <div class="page-head"><div><span class="eyebrow">Browse</span><h1>Opportunities</h1><p class="muted">Every import compared with the identical product in Lebanese stores, at a <b>${money(state.settings.budget)}</b> budget with shipping, customs, VAT and selling costs included.</p></div>
+      <div class="page-head"><div><span class="eyebrow">Browse</span><h1>Opportunities</h1><p class="muted">Every import compared with the identical product in Lebanese stores, ${state.settings.budget >= ANY_BUDGET ? h`with <b>no budget limit</b>` : h`at a <b>${money(state.settings.budget)}</b> budget`} with shipping, customs, VAT and selling costs included.</p></div>
         <div class="row">${filterButton('labelled')}<a class="btn" href="#/">${icon('home')} Swipe view</a><a class="btn" href="#/add">${icon('plus')} Add listing</a></div></div>
       ${activeCount() ? h`<p class="filter-summary"><small class="muted">Showing ${all.length} of ${everything.length}: ${[filters.kinds.map(k => k === 'other' ? 'Other' : state.meta.kinds[k]).join(', '), filters.platforms.join(', '), filters.maxCost != null ? `cost up to ${money(filters.maxCost)}` : '', filters.maxMoq != null ? `min. qty up to ${filters.maxMoq}` : ''].filter(Boolean).join(' · ')}</small></p>` : ''}
       <div class="tabs">${TABS.map(([k, l]) => h`<button class="${k === tab ? 'on' : ''}" data-tab="${k}">${l} (${count(k)})</button>`)}</div>

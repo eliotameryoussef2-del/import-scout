@@ -6,7 +6,7 @@ const SEV = { good: 'b-good', warn: 'b-warn', error: 'b-bad', info: 'b-info' };
 export default async function monitor(view) {
   const [m, alerts] = await Promise.all([api('/monitor'), api('/alerts')]);
   view.innerHTML = html`<span class="eyebrow">Automation</span><h1>Price monitoring</h1>
-    <p><a href="#/rejected">See the products the app rejected because they lose money →</a></p>
+    <p><a href="#/rejected">See the products the app does not list (they lose money, or nothing comparable is sold in Lebanon) →</a></p>
     <p class="muted">Background jobs keep running while the app is closed (as long as the server runs). Values that fail to refresh keep their last known value and are marked stale — they are never shown as freshly verified.</p>
     <section class="card"><div class="row between"><h2>Alerts</h2><button class="btn small" id="read-all">Mark all read</button></div>
       ${alerts.length ? h`<div class="table-wrap"><table>${alerts.slice(0, 60).map(a => h`<tr style="${a.read ? 'opacity:.6' : ''}"><td><span class="badge ${SEV[a.severity] || ''}">${a.type.replace(/_/g, ' ')}</span></td><td>${a.ref_kind === 'supplier_product' ? h`<a href="#/p/${a.ref_id}">${a.message}</a>` : a.message}</td><td><small>${ago(a.created_at.replace(' ', 'T') + (a.created_at.includes('Z') ? '' : 'Z'))}</small></td></tr>`)}</table></div>` : h`<div class="empty">No alerts yet.</div>`}

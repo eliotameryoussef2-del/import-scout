@@ -15,7 +15,11 @@ export class ComputerOnly extends Error {
   constructor(what = 'This') { super(`${what} works in the computer version of Import Scout, not in the online copy.`); }
 }
 
-const budget = () => { const b = store.get('budget', CFG.defaultBudget); return CFG.budgets.includes(b) ? b : CFG.defaultBudget; };
+const ANY = 1000000;
+const anyBudget = () => store.get('budget', CFG.defaultBudget) >= ANY;
+// Data folder for the chosen budget; "Any amount" uses the largest preset (no product needs more cash).
+const budget = () => { const b = store.get('budget', CFG.defaultBudget); return b >= ANY ? Math.max(...CFG.budgets) : CFG.budgets.includes(b) ? b : CFG.defaultBudget; };
+const shownBudget = () => (anyBudget() ? ANY : budget());
 const nearestBudget = v => CFG.budgets.reduce((best, b) => (Math.abs(b - v) < Math.abs(best - v) ? b : best), CFG.budgets[0]);
 const savedMap = () => store.get('saved', {});
 const markSaved = rows => { const s = savedMap(); return rows.map(r => ({ ...r, saved: !!s[r.id] })); };
@@ -36,8 +40,8 @@ export async function staticApi(path, opts = {}) {
   let m;
   if (method === 'GET') {
     if (p === '/meta') return file('meta.json');
-    if (p === '/overview') { const o = await file(`b${B}/overview.json`); return { ...o, settings: { ...o.settings, budget: B }, static: CFG }; }
-    if (p === '/settings') return { ...(await file('settings.json')), budget: B };
+    if (p === '/overview') { const o = await file(`b${B}/overview.json`); return { ...o, settings: { ...o.settings, budget: shownBudget() }, static: CFG }; }
+    if (p === '/settings') return { ...(await file('settings.json')), budget: shownBudget() };
     if (p === '/opportunities') return markSaved(await file(`b${B}/${q.get('rejected') === '1' ? 'rejected' : 'opportunities'}.json`));
     if ((m = p.match(/^\/opportunities\/(\d+)$/))) return detail(m[1]);
     if ((m = p.match(/^\/comparable-history\/(\d+)$/))) return file(`history/${m[1]}.json`).catch(() => []);
@@ -69,7 +73,9 @@ export async function staticApi(path, opts = {}) {
   if (p === '/settings' && method === 'PUT') {
     const keys = Object.keys(opts.body || {}).filter(k => k !== 'max_products');
     if (keys.length !== 1 || keys[0] !== 'budget') throw new ComputerOnly('Changing these settings');
-    const want = Number(opts.body.budget); const got = nearestBudget(want);
+    const want = Number(opts.body.budget);
+    if (want >= ANY) { store.set('budget', ANY); return { ...(await file('settings.json')), budget: ANY }; }
+    const got = nearestBudget(want);
     store.set('budget', got);
     if (got !== want) setTimeout(() => import('./lib.js').then(l => l.toast(`The online copy has budgets of ${CFG.budgets.map(b => '$' + b.toLocaleString('en-US')).join(', ')}: showing $${got.toLocaleString('en-US')}`, 4500)), 300);
     return { ...(await file('settings.json')), budget: got };
