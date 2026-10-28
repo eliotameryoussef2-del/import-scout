@@ -1,0 +1,1 @@
+{"type":"water_bottle","key":{"numeric":["capacity_ml"],"materials":true,"features":true,"forms":[["shaker"],["sippy","kids","children","child","baby","toddler","cartoon"],["tumbler","cup","mug"],["collapsible","foldable"]],"formsOptional":true},"specs":{"capacity_ml":800,"materials":["plastic"]},"manual":{},"model":"rbf021-phyllis-01"}

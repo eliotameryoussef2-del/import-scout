@@ -1,0 +1,1 @@
+{"type":"car_vacuum","key":{"numeric":["power_w","battery_mah"],"features":true},"specs":{"capacity_ml_range":[500,1000],"power_w_range":[2000,2999],"features":["insulated"],"dims_cm":[120,26,22],"weight_g":1814,"rechargeable":true},"manual":{},"model":null}
