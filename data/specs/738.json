@@ -1,0 +1,1 @@
+{"type":"luggage_scale","key":{"numeric":["max_load_g"]},"specs":{"features":["hook/hanging"],"thickness_mm":25,"dims_cm":[10,3.7,2.5],"max_load_g":40000,"materials":["abs","plastic"]},"manual":{},"model":"ocs-12"}
