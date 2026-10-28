@@ -1,8 +1,8 @@
 // Service worker: lets phones install Import Scout as an app (like Darb) and keeps the app shell
 // available when the connection drops. Data (/api) always comes from the network, so prices are never stale.
-const SHELL = 'import-scout-v202610282100';
+const SHELL = 'import-scout-v202610282139';
 // Relative to this file, so it works at / (computer) and under /import-scout/ (online copy).
-const FILES = ['./', 'index.html', 'static-config.js', 'v202610282100/styles.css', 'v202610282100/app.js', 'v202610282100/lib.js', 'v202610282100/filters.js', 'v202610282100/static-api.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
+const FILES = ['./', 'index.html', 'static-config.js', 'v202610282139/styles.css', 'v202610282139/app.js', 'v202610282139/lib.js', 'v202610282139/filters.js', 'v202610282139/static-api.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(SHELL).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
