@@ -1,7 +1,7 @@
 // Product filters (feed + Browse), like Darb: one Filters button opens a full-screen list —
 // Budget, Category, Supplier site, Total cost, Minimum quantity — and each row opens its options.
 // Budget is saved in the app's settings; the other choices are remembered on this device only.
-import { html, h, raw, money, icon, api, toast } from './lib.js';
+import { html, h, raw, money, icon, api, toast, ANY_BUDGET, budgetLabel } from './lib.js';
 import { state, refreshChrome } from './app.js';
 
 const KEY = 'filters:v1';
@@ -48,7 +48,7 @@ export async function openFilterPanel(getRows, onChange, startPage = null) {
   const toggle = (list, v) => { const i = list.indexOf(v); if (i >= 0) list.splice(i, 1); else list.push(v); };
   const count = pred => applyFiltersExcept(rows, page).filter(pred).length;
   const summary = {
-    budget: () => money(state.settings.budget),
+    budget: () => budgetLabel(state.settings.budget),
     kind: () => (filters.kinds.length ? filters.kinds.map(kindLabel).join(', ') : 'All'),
     platform: () => (filters.platforms.length ? filters.platforms.join(', ') : 'All'),
     cost: () => (filters.maxCost != null ? `Up to ${money(filters.maxCost)}` : 'Any'),
@@ -65,8 +65,9 @@ export async function openFilterPanel(getRows, onChange, startPage = null) {
     } else if (page === 'budget') {
       const b = state.settings.budget;
       body = h`<p class="fnote">Everything is recalculated for this budget: what fits, how many units to order and the profit.</p>
+        ${opt(b >= ANY_BUDGET, `data-budget="${ANY_BUDGET}"`, 'Any amount (no limit)')}
         ${BUDGETS().map(v => opt(v === b, `data-budget="${v}"`, money(v)))}
-        ${window.IMPORT_SCOUT_STATIC ? '' : h`<form class="fcustom" data-custom><label>Other amount<input type="number" inputmode="numeric" min="20" step="1" placeholder="e.g. 750" value="${BUDGETS().includes(b) ? '' : b}"></label><button class="btn primary">Use</button></form>`}`;
+        ${window.IMPORT_SCOUT_STATIC ? '' : h`<form class="fcustom" data-custom><label>Other amount<input type="number" inputmode="numeric" min="20" step="1" placeholder="e.g. 750" value="${BUDGETS().includes(b) || b >= ANY_BUDGET ? '' : b}"></label><button class="btn primary">Use</button></form>`}`;
     } else if (page === 'kind') {
       const kinds = [...new Set(rows.map(o => o.kind))].sort((a, b) => kindLabel(a).localeCompare(kindLabel(b)));
       body = h`${opt(!filters.kinds.length, 'data-kind=""', 'All categories')}${kinds.map(k => opt(filters.kinds.includes(k), `data-kind="${k}"`, kindLabel(k), count(o => o.kind === k)))}`;

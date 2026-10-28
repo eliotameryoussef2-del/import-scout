@@ -1,4 +1,4 @@
-import { api, html, h, raw, money, money2, pct, statusBadge, labelBadge, riskBadge, freshBadge, ago, dateStr, toast, lineChart, PALETTE, formData, icon } from '../lib.js';
+import { api, html, h, raw, money, money2, pct, statusBadge, labelBadge, riskBadge, freshBadge, ago, dateStr, toast, lineChart, PALETTE, formData, icon, evidenceBadge } from '../lib.js';
 import { state } from '../app.js';
 
 const SC = ['conservative', 'base', 'optimistic'];
@@ -55,9 +55,11 @@ function scenarioTable(a) {
   <small>Profit counts only units expected to sell within the planning horizon; unsold stock is shown separately at cost, not as profit. Cash-recovery <i>time</i> is not estimated because no Lebanese sales-rate data exists for this product — validate with a test order or pre-orders.</small>`;
 }
 
-const LABEL_TEXT = { similar: 'similar · estimate', exact: 'same specs', strong: 'same where stated', weak: 'different' };
+const LABEL_TEXT = { similar: 'similar · estimate', exact: 'same specs', strong: 'closest · approximate', weak: 'different' };
 
-const sameBox = m => (m?.basis === 'similar unbranded'
+const sameBox = m => (m?.basis === 'approximate'
+  ? h`<div><span>Closest items in Lebanon</span><b>≈ ${money(m.min, m.min % 1 ? 2 : 0)}</b><small>approximate · not identical · ${m.stores} store${m.stores === 1 ? '' : 's'}${m.max > m.min ? ` · up to ${money(m.max, m.max % 1 ? 2 : 0)}` : ''}</small></div>`
+  : m?.basis === 'similar unbranded'
   ? h`<div><span>Similar items in Lebanon</span><b>≈ ${money(m.median)}</b><small>estimate · typical of ${m.listings} unbranded items at ${m.stores} stores (${money(m.min)}–${money(m.max)})</small></div>`
   : m
   ? h`<div><span>Same product in Lebanon</span><b>from ${money(m.min, m.min % 1 ? 2 : 0)}</b><small>${m.stores} store${m.stores === 1 ? '' : 's'}${m.max > m.min ? ` · up to ${money(m.max, m.max % 1 ? 2 : 0)}` : ''}${m.basis.startsWith('same specs where') ? ' · specs partly confirmed' : ''}</small></div>`
@@ -103,6 +105,11 @@ async function renderSpecEditor(view, id) {
 }
 
 async function renderStores(view, comps, market) {
+  if (market?.basis === 'approximate') {
+    comps = comps.filter(c => c.label === 'strong').map(c => ({ ...c, user_verdict: 1 }));
+    view.querySelector('#where-title').textContent = 'Closest items in Lebanese stores';
+    view.querySelector('#where-note').textContent = 'No store sells this exact item, so the price is an APPROXIMATE prediction from the closest listings: the same kind of product with nothing contradicting, but not every spec is stated on both. Check the differences (chips below each listing) before relying on it. Each pin is a shop branch with its price.';
+  }
   if (market?.basis === 'similar unbranded') {
     comps = market.prices.map(l => ({ ...l, price_usd: l.price, label: 'similar', currency: 'USD', user_verdict: 1 }));
     view.querySelector('#where-title').textContent = 'Similar items in Lebanese stores';
@@ -227,7 +234,7 @@ export default async function product(view, id) {
     <header class="hero">
       ${sp.image ? h`<div class="bg" style="background-image:url('${sp.image}')"></div><img class="main" src="${sp.image}" alt="" referrerpolicy="no-referrer">` : ''}
       <a href="#/" class="back glass" data-back aria-label="Back">${icon('back')}</a>
-      <div class="over"><div class="row">${statusBadge(a.status)} ${a.risk ? riskBadge(a.risk) : ''} ${a.score != null ? h`<span class="pill">Score ${Math.round(a.score)}/100</span>` : ''}</div>
+      <div class="over"><div class="row">${statusBadge(a.status)} ${evidenceBadge(a.pricing?.market)} ${a.risk ? riskBadge(a.risk) : ''} ${a.score != null ? h`<span class="pill">Score ${Math.round(a.score)}/100</span>` : ''}</div>
         <h1>${sp.short_name || sp.title}</h1></div>
     </header>
     <div class="card">

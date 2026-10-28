@@ -1,5 +1,5 @@
 // "For you": one opportunity per screen, swipe up for the next. Tap = details, double-tap = save.
-import { api, html, h, money, statusBadge, riskBadge, toast, icon } from '../lib.js';
+import { api, html, h, money, statusBadge, riskBadge, toast, icon, evidenceBadge } from '../lib.js';
 import { state } from '../app.js';
 import { applyFilters, filterButton, bindFilters, openFilterPanel } from '../filters.js';
 
@@ -30,13 +30,13 @@ function slide(o, i) {
     ${o.image ? h`<div class="bg" style="background-image:url('${o.image}')"></div>` : ''}
     <div class="media">${o.image ? h`<img src="${o.image}" alt="${o.name}" loading="${i < 2 ? 'eager' : 'lazy'}" referrerpolicy="no-referrer">` : h`<div class="ph">${icon('box')}</div>`}</div>
     <div class="info">
-      <div class="tagline">${statusBadge(o.status)} ${o.risk ? riskBadge(o.risk) : ''}</div>
+      <div class="tagline">${statusBadge(o.status)} ${evidenceBadge(o.market)} ${o.risk ? riskBadge(o.risk) : ''}</div>
       <h2>${o.name}</h2>
       <p class="src">${icon('box')} <span>${money(o.unitCost, 2)} each · min. ${o.moq ?? '?'} on <a href="${o.url}" target="_blank" rel="noopener" data-stop>${o.platform || 'supplier site'}</a>${o.supplier && !o.supplier.includes(o.platform) ? ` · ${o.supplier}` : ''}</span></p>
       <div class="prices">
         <div class="glass"><span>Cost</span><b>${o.landed ? money(o.landed, 2) : money(o.unitCost, 2)}</b><small>${o.landed ? 'delivered' : 'supplier only'}</small></div>
         <div class="glass sell"><span>Sell at</span><b>${o.sellPrice ? money(o.sellPrice) : '—'}</b><small>${o.ownPrice ? 'your price' : o.sellPrice ? 'suggested' : 'set a price'}</small></div>
-        <div class="glass"><span>Lebanon</span>${m?.basis === 'similar unbranded' ? h`<b>≈${money(m.median)}</b><small>similar · estimate</small>` : m ? h`<b>${money(m.min, m.min % 1 ? 2 : 0)}</b><small>${m.stores} store${m.stores === 1 ? '' : 's'}</small>` : h`<b>—</b><small>not sold</small>`}</div>
+        <div class="glass"><span>Lebanon</span>${m?.basis === 'approximate' ? h`<b>≈${money(m.min, m.min % 1 ? 2 : 0)}</b><small>closest items</small>` : m?.basis === 'similar unbranded' ? h`<b>≈${money(m.median)}</b><small>similar · estimate</small>` : m ? h`<b>${money(m.min, m.min % 1 ? 2 : 0)}</b><small>${m.stores} store${m.stores === 1 ? '' : 's'}</small>` : h`<b>—</b><small>not sold</small>`}</div>
       </div>
       ${profitLine(o)}
       <p class="hint">${icon('up')} Tap for details & store map · swipe for next</p>
