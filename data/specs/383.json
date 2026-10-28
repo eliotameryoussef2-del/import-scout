@@ -1,1 +1,1 @@
-{"type":"building_blocks","key":{"numeric":["count"]},"specs":{"thickness_mm":8,"dims_cm":[0.8,0.8],"count":1000},"manual":{},"model":null}
+{"type":"building_blocks","key":{"numeric":["count"],"materials":true,"forms":[["magnetic","magnet"],["plank","planks","kapla"],["stacking","stones","stone"],["gear","gears"],["brick","bricks","lego","moc","micro","diamond","particle","particles"]],"formsRequired":true,"brandDefines":true},"specs":{"thickness_mm":8,"dims_cm":[0.8,0.8],"count":1000},"manual":{},"model":null}

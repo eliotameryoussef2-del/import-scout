@@ -1,1 +1,1 @@
-{"type":"phone_tripod","key":{"numeric":["length_cm"]},"specs":{"length_cm":14,"weight_g":121,"count":2,"materials":["aluminum"]},"manual":{},"model":"sfs-f02"}
+{"type":"phone_tripod","key":{"numeric":["length_cm"],"features":true,"forms":[["selfie stick","selfie"],["ring light"],["light stand"],["monopod"],["tripod"]],"formsRequired":true},"specs":{"length_cm":14,"weight_g":121,"count":2,"materials":["aluminum"]},"manual":{},"model":"sfs-f02"}

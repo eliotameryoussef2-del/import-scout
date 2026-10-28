@@ -1,1 +1,1 @@
-{"type":"phone_tripod","key":{"numeric":["length_cm"]},"specs":{"features":["telescopic","magnetic"],"length_cm":30,"weight_g":1000,"materials":["silicone","abs"],"foldable":true,"magnetic":true},"manual":{},"model":null}
+{"type":"phone_tripod","key":{"numeric":["length_cm"],"features":true,"forms":[["selfie stick","selfie"],["ring light"],["light stand"],["monopod"],["tripod"]],"formsRequired":true},"specs":{"features":["telescopic","magnetic"],"length_cm":30,"weight_g":1000,"materials":["silicone","abs"],"foldable":true,"magnetic":true},"manual":{},"model":null}

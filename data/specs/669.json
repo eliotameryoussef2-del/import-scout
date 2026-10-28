@@ -1,1 +1,1 @@
-{"type":"phone_tripod","key":{"numeric":["length_cm"]},"specs":{"bt_version":5,"features":["remote control","magnetic"],"length_cm":1000,"materials":["aluminum"],"foldable":true,"magnetic":true},"manual":{},"model":null}
+{"type":"phone_tripod","key":{"numeric":["length_cm"],"features":true,"forms":[["selfie stick","selfie"],["ring light"],["light stand"],["monopod"],["tripod"]],"formsRequired":true},"specs":{"bt_version":5,"features":["remote control","magnetic"],"length_cm":1000,"materials":["aluminum"],"foldable":true,"magnetic":true},"manual":{},"model":null}

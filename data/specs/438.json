@@ -1,1 +1,1 @@
-{"type":"phone_tripod","key":{"numeric":["length_cm"]},"specs":{"features":["rgb lights"],"length_cm":60,"materials":["aluminum"]},"manual":{},"model":null}
+{"type":"phone_tripod","key":{"numeric":["length_cm"],"features":true,"forms":[["selfie stick","selfie"],["ring light"],["light stand"],["monopod"],["tripod"]],"formsRequired":true},"specs":{"features":["rgb lights"],"length_cm":60,"materials":["aluminum"]},"manual":{},"model":null}

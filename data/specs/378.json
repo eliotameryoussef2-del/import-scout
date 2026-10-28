@@ -1,1 +1,1 @@
-{"type":"building_blocks","key":{"numeric":["count"]},"specs":{"count":151},"manual":{},"model":null}
+{"type":"building_blocks","key":{"numeric":["count"],"materials":true,"forms":[["magnetic","magnet"],["plank","planks","kapla"],["stacking","stones","stone"],["gear","gears"],["brick","bricks","lego","moc","micro","diamond","particle","particles"]],"formsRequired":true,"brandDefines":true},"specs":{"count":151},"manual":{},"model":null}

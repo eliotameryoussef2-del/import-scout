@@ -1,1 +1,1 @@
-{"type":"phone_tripod","key":{"numeric":["length_cm"]},"specs":{"length_cm":150,"weight_g":1150,"count":5000,"materials":["aluminum"]},"manual":{},"model":"tpa-3150"}
+{"type":"phone_tripod","key":{"numeric":["length_cm"],"features":true,"forms":[["selfie stick","selfie"],["ring light"],["light stand"],["monopod"],["tripod"]],"formsRequired":true},"specs":{"length_cm":150,"weight_g":1150,"count":5000,"materials":["aluminum"]},"manual":{},"model":"tpa-3150"}

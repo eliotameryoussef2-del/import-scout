@@ -1,1 +1,1 @@
-{"type":"building_blocks","key":{"numeric":["count"]},"specs":{"dims_cm":[15,15,15],"weight_g":400,"materials":["abs"]},"manual":{},"model":"mss018"}
+{"type":"building_blocks","key":{"numeric":["count"],"materials":true,"forms":[["magnetic","magnet"],["plank","planks","kapla"],["stacking","stones","stone"],["gear","gears"],["brick","bricks","lego","moc","micro","diamond","particle","particles"]],"formsRequired":true,"brandDefines":true},"specs":{"dims_cm":[15,15,15],"weight_g":400,"materials":["abs"]},"manual":{},"model":"mss018"}

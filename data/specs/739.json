@@ -1,1 +1,1 @@
-{"type":"building_blocks","key":{"numeric":["count"]},"specs":{"dims_cm":[18,11,21.5],"count":116},"manual":{},"model":"jx688-31"}
+{"type":"building_blocks","key":{"numeric":["count"],"materials":true,"forms":[["magnetic","magnet"],["plank","planks","kapla"],["stacking","stones","stone"],["gear","gears"],["brick","bricks","lego","moc","micro","diamond","particle","particles"]],"formsRequired":true,"brandDefines":true},"specs":{"dims_cm":[18,11,21.5],"count":116},"manual":{},"model":"jx688-31"}
